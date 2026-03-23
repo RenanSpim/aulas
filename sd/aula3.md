@@ -1,0 +1,118 @@
+# Aula 3
+
+## Modelos de arquitetura e modelos formais
+
+### Modelos de arquitetura
+- Descrevem um sistema em termos das tarefas computacionais e de comunicação realizadas por seus elementos
+  - O objetivo é garantir que a estrutura do sistema atenda às demandas atuais e às futuras
+  - Modelos de arquitetura também são chamados de **estilos/modelos arquitetônicos**
+- Critérios a se considerar num SD:
+  - Quais são as entidades se comunicando no sistema?
+  - Como elas se comunicam? (Qual o paradigma de comunicação usado?)
+  - Quais funções e responsabilidades estão relacionadas a essas entidades na arquitetura global?
+  - Como elas são mapeadas na infraestrutura física do sistema? (Qual a localização dessas entidades?)
+- Paradigmas de comunicação (como os nós se comunicam)
+  - **Comunicação entre processos**: Suporte de baixo nível para a comunicação entre processos, incluindo primitavs de passagem de mensagens, acesso a APIs (sockets) e comunicação em grupo
+  - **Invocação remota**: Paradigma mais comum
+    - Diferentes técnicas baseadas na troca bilateral entre as entidades, resulltando na chamanda de uma operação remota
+      - Protocolo de requisição-resposta: Sistema cliente-servidor
+      - **Remote procedure call (RPC)**: Procedimentos nos processos de outros computadores podem ser chamados com ose fossem procedimentos no espaço de endereçamento local
+        - Suporte à cliente-servidor, com maior transparência de acesso e localização
+      - **Remote method invoke (RMI)**: Semelhante à anterior, porém voltada para objetos distribuidos
+        - Fornecem maior integração com linguagens orientadas a objetos
+  - **Comunicação indireta**: Terceira entidade intermedia a comunicação entre rementente e destinatário, permitindo um maior grau de desacoplamento entre os dois
+    - **Desacoplamento espacial**: Os remetentes não precisam saber para quem estão enviando
+    - **Desacoplamento temporal**: Os remetentes e os destinatários não precisam existi ao mesmo tempo
+    - Comunicação em grupo
+    - Sistemas publicar-assinar (sistemas baseados em eventos distribuídos)
+    - Filas de mensagens
+    - Espaços de tupla
+    - Memória compartilhada distribuída (DSM)
+- Cliente-servidor
+  - Modelo clássico
+  - Todos os nós atuam como cliente ou servidor
+    - Clientes requisitam, servidores entregam
+    - Servidores podem ser clientes de outros servidores
+  - Exemplo: Serviço Web e DNS
+  - Vantagens:
+    - Centralização de recursos
+    - Facilidade de manutenção
+  - Desvantagens:
+    - Distinguir quem é cliente e quem é servidor
+    - Qual entidade física executará qual função importa, sendo necessário medidas para garantir que o sistema funciona, como múltiplos servidores ou agentes móveis (redirecionar o pedido do cliente para servidores mais próximos)
+    - Servidor é mais suscetível à sobrecarga
+- Peer-to-peer (bittorrent)
+  - Similar ao cliente-servidor, porém todos os nós executam ambas as tarefas
+    - Requisitam e respondem uns aos outros
+    - Computadores executam múltiplos processos ao mesmo tempo
+  - Vantagens:
+    - Estupidamente escalável
+    - Maior tolerância a falhas
+  - Desvantagens
+    - Mais difícil de manter a segurança
+    - Não tem garantia da disponibilidade de dados
+    - Alta complexidade
+### Padrões arquitetônicos
+- Padrões baseados nos elementos anteriores com o objetivo de facilitar o projeto de um sistema voltado a um domínio específico a partir dos elemetnos mais primitivos
+- Camadas lógicas (layering)
+- Camadas superiores desconhecem os detalhes de implementação das camadas inferiores à eles
+  - Às vezes desconhecem até mesmo a existência delas
+- Camadas físicas (tiering)
+  - Organizam a funcionalidade de uma camada lógica e a colocam no servidor apropriado, consequentemente nos seus nós físicos
+- Clientes magros (thin clients)
+  - Camadas de software que tem suporte para uma interface baseada em janelas, local ao usuário, que executa programas em um computador remoto
+- Proxy
+  - Padrão recorrente em SDs projetados para suportar transparência de localização em camadas de procedimento de método remotos
+  - Um proxy é criado no endereçamento local oferencendo a mesma interface de objeto remoto e as chamadas são feitas no objeto proxy, não sendo necessário saber nada sobre a natureza distribuída da interação
+- Middleware
+  - Camada de software que atua como intermediária entre aplicações e o SD
+    - Facillita a comunicação e coordenação entre os componentes do sistema
+    - Simplifica o desenvolvimento de apps distribuídos
+    - Oculta a distribuição de dados, processamento e controle (transparência de distribuição)
+  - É interessante que cada middleware seja adaptado para cada aplicação
+    - Assim ele é capaz de simplificá-la
+    - Acaba perdendo flexibilidade
+  - Existem diferentes categorias de middleware de acordo com a arquitetura base
+    - P2P, web services, componentes distribuídos, sistema publicar-assinar
+
+### Modelos fundamentais
+- Todos os modelos que vimos possuem características em comum
+  - Processos se comunicando em uma rede
+- Se focarmos apenas nos fatores que vimos nos modelos físicos e arquitetônicos
+- Deve conter apenas o que precisamos considerar para entender e raciocinar a respeito de certos aspectos do sistema
+- O objetivo de um modelo fundamental é:
+  - Tornar explícitas todas as suposições relevantes sobre o sistema que estamos modelando
+  - Fazer generalizações a respeito do que é possível ou não dadas as suposições explicitadas
+    - Podem ser algoritmos de propósito geral ou propriedades desejáveis a serem garantidas
+- **Modelo de interação**
+  - Define como os processos se comunicam, comportam e coordenam em um SD
+    - Comunicação por troca de mensagens (síncrona ou assíncrona)
+  - **Latência e tempo de resposta**
+    - Não existe tempo fixo para entrega de mensagens
+      - Depende da rede, carga de servidores, distância física entre as máquinas
+  - **Sincronização**
+    - Diferentes processos podem executar ao mesmo tempo em máquinas distintas
+    - Nem sempre existe um relógio global
+    - Protocolos de sincronização ou relógios lógicos são usados
+  - **Ordenação de eventos**
+    - Eventos podem ocorrer em ordens diferentes dependendo de quando as mensagens referente ao evento são entregues
+    - Inconsistências temporárias entre os nós
+    - Timestamps lógicos ajudam a determinar a ordem dos eventos
+  - **Modelo de falha**
+    - Define quais tipos de falhas podem ocorrer e como lidar com elas
+      - **Falhas por omissão na comunicação**
+        - Mensagens podem se perder, não serem enviadas, não serem encaminhadas para o processo, processos podem se interrompidos, entre outros
+      - **Falhas arbitrárias**
+        - Pior tipo de falha, pois pode ser qualquer tipo de erro, como um processo retoornando uma resposta errada ou enviar mensagens arbitrárias
+      - **Falhas de tempo**
+        - Relógio local do processo dessincroniza em relação ao tempo real
+        - Processo extrapola o intervalo de tempo entre dois passos
+        - A transmissão de uma mensagem demora mais que o previsto
+    - **Modelo de segurança**
+      - Define como proteger os dados, processos e comunicação dentro do sistema, uma vez que a natureza os faz mais suscetíveis a ataques
+        - Ameaça aos processos
+        - Ameaça aos canais de comunicação
+        - Técnicas para anular ameaças:
+          - **Criptografia**: Somente dois processos sabem as informações sobre um determinado segredo
+          - **Autenticação**: Pelo uso de criptografia o destinatário é capaz de identificar o remetente pelas informações relacionadas ao segredo compartilhado entre ambos
+          - **Canais seguros**: Camada a mais sobre os serviços de comunicação, protegendo a comunicação entre dois processos, garantindo privacidade e integridade dos dados
